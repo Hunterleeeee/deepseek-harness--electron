@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false,
+    "noEmit": true,
+    "rewriteRelativeImportExtensions": false,
+    "types": ["node", "electron"]
+  },
+  "include": [
+    "src/preload.ts",
+    "src/protocol.ts"
+  ]
+}

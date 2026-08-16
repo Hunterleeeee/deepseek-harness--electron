@@ -1,0 +1,245 @@
+.copyLogs:focus-visible {
+  outline: 2px solid var(--dsw-static-deepseek-450);
+  outline-offset: 2px;
+}
+
+.dialog {
+  width: min(560px, 100%);
+  max-height: min(760px, calc(100vh - 48px));
+}
+
+.content {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.status {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.statusCopy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--dsw-alias-label-primary);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.statusCopy strong {
+  font-weight: 500;
+}
+
+.statusCopy span {
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 12px;
+}
+
+.commits {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.commit {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--dsw-alias-border-l1);
+  border-radius: 12px;
+  background: var(--dsw-alias-bg-layer-1);
+}
+
+.commit span {
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.commit code {
+  overflow: hidden;
+  color: var(--dsw-alias-label-primary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.commitArrow {
+  color: var(--dsw-alias-label-caption);
+}
+
+.progressSection {
+  margin-top: 20px;
+}
+
+.progressTrack {
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--dsw-alias-bg-overlay);
+}
+
+.progressFill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--dsw-static-deepseek-450);
+  transition: width 240ms ease;
+}
+
+.steps {
+  display: grid;
+  margin: 12px 0 0;
+  padding: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  list-style: none;
+}
+
+.steps li {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.steps li > span,
+.steps li > svg {
+  display: inline-flex;
+  width: 16px;
+  height: 16px;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 10px;
+}
+
+.stepDone {
+  color: var(--dsw-alias-state-success-primary);
+}
+
+.stepActive {
+  color: var(--dsw-alias-label-primary);
+}
+
+.stepActive > span {
+  background: var(--dsw-static-deepseek-450);
+  color: white;
+}
+
+.stepPending {
+  color: var(--dsw-alias-label-caption);
+}
+
+.stepPending > span {
+  border: 1px solid var(--dsw-alias-border-l2);
+}
+
+.error {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--dsw-alias-state-error-primary) 10%, transparent);
+  color: var(--dsw-alias-state-error-primary);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.error svg {
+  flex: none;
+  margin-top: 1px;
+}
+
+.installHint {
+  margin: 16px 0 0;
+  color: var(--dsw-alias-label-secondary);
+  font-size: 12px;
+  line-height: 19px;
+}
+
+.logs {
+  margin-top: 18px;
+  border: 1px solid var(--dsw-alias-border-l1);
+  border-radius: 12px;
+  background: var(--dsw-alias-bg-layer-1);
+}
+
+.logs summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  color: var(--dsw-alias-label-secondary);
+  cursor: pointer;
+  font-size: 12px;
+  list-style: none;
+}
+
+.logs summary::-webkit-details-marker {
+  display: none;
+}
+
+.copyLogs {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 0;
+  border-radius: 7px;
+  padding: 3px 7px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+
+.copyLogs:hover {
+  background: var(--dsw-alias-interactive-bg-hover);
+}
+
+.logs pre {
+  max-height: 220px;
+  margin: 0;
+  padding: 12px;
+  overflow: auto;
+  border-top: 1px solid var(--dsw-alias-border-l1);
+  color: var(--dsw-alias-label-secondary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  line-height: 17px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.spinning {
+  animation: desktop-update-spin 900ms linear infinite;
+}
+
+@keyframes desktop-update-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trigger,
+  .progressFill {
+    transition: none;
+  }
+
+  .spinning {
+    animation: none;
+  }
+}

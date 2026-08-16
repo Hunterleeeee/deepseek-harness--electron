@@ -1,0 +1,45 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false,
+    "noEmit": true,
+    "rewriteRelativeImportExtensions": false,
+    "types": ["node", "electron"]
+  },
+  "include": [
+    "src/artifact-preview.ts",
+    "src/build-info.ts",
+    "src/document-import.ts",
+    "src/harness-runtime.ts",
+    "src/ipc-host.ts",
+    "src/main.ts",
+    "src/memory-webserver.ts",
+    "src/plugin-manager.ts",
+    "src/protocol.ts",
+    "src/update-helper.ts",
+    "src/updater.ts",
+    "scripts/generate-icon.ts",
+    "scripts/write-build-info.ts",
+    "scripts/verify-packaged.ts"
+  ],
+  "references": [
+    { "path": "../../vendor/cordis" },
+    { "path": "../../vendor/group" },
+    { "path": "../../vendor/hmr" },
+    { "path": "../../vendor/include" },
+    { "path": "../../vendor/loader" },
+    { "path": "../../packages/boot/app-boot" },
+    { "path": "../../packages/bundle/base" },
+    { "path": "../../packages/bundle/web-app" },
+    { "path": "../../packages/client/connection/tsconfig.host.json" },
+    { "path": "../../packages/client/modules" },
+    { "path": "../../packages/host/apiproxy" },
+    { "path": "../../packages/host/webserver" },
+    { "path": "../../packages/core/system-prompt" },
+    { "path": "../../packages/util/atomic-write" },
+    { "path": "../../packages/util/home-paths" },
+    { "path": "../../packages/util/launch-environment" }
+  ]
+}

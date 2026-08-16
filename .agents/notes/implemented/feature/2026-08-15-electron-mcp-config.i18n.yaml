@@ -1,0 +1,6 @@
+# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/feature/2026-08-15-electron-mcp-config.md
+2026-08-15-electron-mcp-config.md: 82c907f00d404f718761388b24ef1638b72a30d4
+2026-08-15-electron-mcp-config.zh.md: 2c27035562616deb026f99188373a7c6762ae18b

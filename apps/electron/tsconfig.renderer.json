@@ -1,0 +1,28 @@
+{
+  "extends": "../../tsconfig.base.client.json",
+  "compilerOptions": {
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false,
+    "noEmit": true,
+    "rewriteRelativeImportExtensions": false
+  },
+  "include": [
+    "src/artifact-preview-ui.tsx",
+    "src/desktop-api.d.ts",
+    "src/document-import.tsx",
+    "src/mcp-config-ui.tsx",
+    "src/desktop-settings-ui.tsx",
+    "src/plugin-catalog.ts",
+    "src/plugin-center-ui.tsx",
+    "src/protocol.ts",
+    "src/renderer.ts",
+    "src/update-ui.tsx",
+    "src/vite-env.d.ts"
+  ],
+  "references": [
+    { "path": "../../packages/client/modules" },
+    { "path": "../../packages/client/ui-primitives" },
+    { "path": "../../packages/client/web" }
+  ]
+}

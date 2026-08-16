@@ -1,0 +1,22 @@
+{
+  "extends": "../../tsconfig.base.client.json",
+  "compilerOptions": {
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false,
+    "noEmit": true,
+    "rewriteRelativeImportExtensions": false,
+    "types": ["node", "vitest/globals"]
+  },
+  "include": [
+    "src/desktop-api.d.ts",
+    "src/document-import.tsx",
+    "src/vite-env.d.ts",
+    "tests/**/*.ts"
+  ],
+  "references": [
+    { "path": "../../packages/client/modules" },
+    { "path": "../../packages/client/ui-primitives" },
+    { "path": "../../packages/client/web" }
+  ]
+}

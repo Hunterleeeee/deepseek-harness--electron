@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self' data: blob:; script-src 'self' blob: 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https: http:; font-src 'self' data:; connect-src 'none'"
+    />
+    <title>DeepSeek Harness</title>
+    <style>
+      html, body, #root { height: 100%; margin: 0; }
+      body { background: #0b0d10; color: #e7e9ee; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .desktop-boot { height: 100%; display: grid; place-items: center; }
+      .desktop-boot__card { width: min(420px, calc(100vw - 48px)); padding: 24px; border: 1px solid #2b3038; border-radius: 14px; background: #14171c; box-shadow: 0 18px 48px rgb(0 0 0 / 28%); }
+      .desktop-boot__title { margin: 0 0 8px; font-size: 18px; font-weight: 650; }
+      .desktop-boot__detail { margin: 0; color: #aeb4bf; font-size: 14px; line-height: 1.6; white-space: pre-wrap; }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <main class="desktop-boot" aria-live="polite">
+        <section class="desktop-boot__card">
+          <h1 class="desktop-boot__title">正在启动 DeepSeek Harness</h1>
+          <p class="desktop-boot__detail">正在装载本地智能体与桌面连接…</p>
+        </section>
+      </main>
+    </div>
+    <script type="module" src="/src/renderer.ts"></script>
+  </body>
+</html>

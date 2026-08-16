@@ -8,14 +8,14 @@ English | [中文](2026-07-19-gui-layering-and-rpc-protocol.zh.md)
 
 ## Problem
 
-We need a UI integration layer. Beyond the existing ACP/stdio baseline, more product clients are coming — Web (server), Electron, and others. We call them Clients and want the following capabilities:
+We need a UI integration layer. Beyond the ACP/stdio baseline, product clients include Web (server), Electron, and others. We call them Clients and want the following capabilities:
 
 - One `dsh` process supporting both `dsh web` (serve) and `dsh --profile headless` (headless) — one process, two modes (a design reservation)
 - Launching inside Electron with the same Web technologies as `dsh web`
 
-That demands a stable layered responsibility model in the engineering codebase, so future clients plug in cleanly.
+That demands a stable layered responsibility model in the engineering codebase, so clients plug in cleanly.
 
-At the same time the physical channels differ per consumer (browser HTTP/WebSocket, in-process fetch/SSE, IPC later), so we also need a channel-independent message model and a single contract source of truth — "adding a method" and "swapping a carrier" must not entangle each other, and every message on the wire must be type-validatable, observable, and reconcilable.
+At the same time the physical channels differ per consumer (browser HTTP/WebSocket, in-process fetch/SSE, Electron IPC), so we also need a channel-independent message model and a single contract source of truth — "adding a method" and "swapping a carrier" must not entangle each other, and every message on the wire must be type-validatable, observable, and reconcilable.
 
 ## Decision
 
@@ -32,10 +32,10 @@ Directories layer as follows:
 - `apps/` holds the externally exported applications, assembled from Client / Host mixtures.
     - `apps/web` (`dsh-web-frontend`) is the vite application: a thin `main.ts` over the shell API exported by `dsh-client-web`.
     - `apps/cli` (`@deepseek-ai/dsh`) dispatches commands: `dsh web` = Host + webserver + the built `dsh-web-frontend` dist; `dsh --profile headless` = [a direct core Agent/Session entry point](2026-08-09-headless-direct-core-entry-point.md), with zero Host, HTTP, or browser layer.
-    - A future Electron application reuses the same web client packages over an IPC fetch carrier.
+    - `apps/electron` (`@deepseek-ai/dsh-electron`) boots the `dsh-base` and `dsh-web-app` bundles without a listening web server. Its sandboxed preload carries plugin bundles, unary API requests, and Host/Mux streams over typed IPC; the renderer runs the same `AppWebEntry` and client plugin graph as Web through `fetch` and `WebSocket` compatibility adapters.
 
 ```
-apps/*  (applications: apps/web = vite app, apps/cli = bin dispatch)
+apps/*  (applications: apps/web = vite app, apps/cli = bin dispatch, apps/electron = IPC desktop)
   │ consume
   ▼
 packages/host/*                      packages/client/*
@@ -67,7 +67,7 @@ On the protocol side: TS interfaces (`packages/host/apiproxy/src/api/`, zero Nod
 | Carrier layer | `dsh-host-webserver` | Web HTTP and upgrade: static serving + `/api/*`→handler forwarding + WebSocket upgrade route + close semantics; plugin bundle endpoint + `__DSH_BOOT__` manifest injection (fed by the web plugin registry) | Web (browser access) only; zero workspace dependencies (the registry arrives by structural injection); Electron does not reuse it |
 | Client libraries | `dsh-client-ui-slots` / `dsh-client-web-react` / `dsh-client-ui-primitives` | Slot registry core / ctx↔React glue / pure React atoms | Zero cordis runtime dependency in components; seeded into the loader module table by the shell |
 | Client plugins | `dsh-client-connection` / `dsh-client-runtime` / `dsh-client-ui-theme` / `dsh-client-i18n` / `dsh-client-ui-layout` / `dsh-client-ui-sidebar` / `dsh-client-ui-conversation` / `dsh-client-ui-trajectory` | Browser-side cordis plugin tree (wire consumer, core services, theme, i18n, layout, sidebar, conversation, trajectory) — see the web client architecture note | Dual entry (node half = empty apply; implementation in `src/client/`); the consumption face goes exclusively through ApiProxy |
-| Application | `@deepseek-ai/dsh` (apps/cli) + `dsh-web-frontend` (apps/web, the vite application) | Coarse bin dispatch + one assembly module per application (web.ts / headless.ts); the vite app is a thin main over the `dsh-client-web` shell surface | Applications use dynamic imports so they never load each other; workspace knowledge like dist location stays in the app |
+| Application | `@deepseek-ai/dsh` (apps/cli) + `dsh-web-frontend` (apps/web) + `@deepseek-ai/dsh-electron` (apps/electron) | Coarse bin dispatch + one assembly per application; the Vite and Electron renderers are thin entries over the `dsh-client-web` shell surface | Applications own delivery-specific composition and transport; workspace and packaging knowledge stays in the app |
 
 #### Naming rule
 
@@ -75,11 +75,11 @@ Packages under `packages/host/*` and `packages/client/*` **must carry the direct
 
 #### How to integrate a new application (operational checklist)
 
-1. **Pick a fetch impersonation**: browser same-origin HTTP / in-process `host.handler.fetch` injection / your own transport-aspect subclass (e.g. future Electron IPC, see the "Subclass table" below).
-2. **Write an assembly module under `apps/`**: `startHost()` + a client subclass + the application's private signal/print/exit semantics; a mixture never becomes a package — assembly is written in the app.
+1. **Pick an API carrier**: browser same-origin HTTP / in-process handler injection / an app-owned adapter. Electron provides the `fetch` and downlink `WebSocket` behavior expected by `WebApiClient` through preload IPC.
+2. **Write the assembly under `apps/`**: boot the required profile and client shell, then own the application's private signal/print/exit semantics there; a mixture never becomes a package.
 3. **Import `dsh-host-webserver` only if you need HTTP carriage**, otherwise zero ports.
 
-The two existing applications preserve the division: the Web application mounts Host, carrier, and browser composition, while `dsh --profile headless` mounts a direct core runner with zero Host, HTTP, or ports. ACP-class protocol bridges do not follow the client-carrier checklist: they expose core to the external ecosystem and mount directly via `ctx.plugin(entry-point plugin)` without fetch.
+The three applications preserve the division: Web mounts Host, the HTTP/WebSocket carrier, and browser composition; `dsh --profile headless` mounts a direct core runner with zero Host, HTTP, or ports; Electron mounts the Host and Web client compositions but substitutes its no-port IPC carrier. ACP-class protocol bridges do not follow the client-carrier checklist: they expose core to the external ecosystem and mount directly via `ctx.plugin(entry-point plugin)` without fetch.
 
 ## Message protocol
 
@@ -211,14 +211,14 @@ The same domain tree as `ApiProxy`, but unary methods **take the business payloa
 
 All four quadrant full forms pass through `onEnvelope`; the base implementation is an **instance-owned microtask-batched buffer** (frame storms must not disturb consumers per frame; module-level state would leak across instances/tests, hence instance-owned). Observers subscribe via `subscribeEnvelopes(listener)` (receiving whole batches as `readonly RpcMessage[]`, returning an unsubscribe function); a listener throw is isolated (observation must never bite the carrier). With no subscribers the buffering costs nothing. No shipped consumer subscribes today — the aspect is the designated seat for wire diagnostics (the retired RPC debug panel was its first consumer, and a future one plugs in without touching the carrier).
 
-### The subclass table (transport carriage)
+### Client transport implementations
 
-| Subclass | Package | doFetch | Purpose |
+| Implementation | Package | `doFetch` / transport | Purpose |
 |---|---|---|---|
 | `InProcessApiClient` | apiproxy itself | the injected `{ fetch }` handler | **The isomorphic point**: `new InProcessApiClient(toFetchHandler(api))` never touches the network yet runs the real wire serialization/zod/SSE framing; carrier tests and callers can exercise the protocol without opening a port, while product `dsh --profile headless` drives core directly |
 | `WebApiClient` | dsh-client-connection | `globalThis.fetch` uplink + one same-origin WebSocket downlink per logical stream | the browser client; physical boundary in the [WebSocket downlink carrier](2026-08-04-websocket-downlink-carrier.md) |
 | `FixtureApiClient` | dsh-client-connection | unused (protocol-layer override) | serverless UI development (`?fixture`): overrides the `callUnary`/`openMux`/`openHost`/`respond` virtuals and is itself the fake server (frame rpcIds minted by it, semantics self-consistent) |
-| IPC bridge subclass (hypothetical example — no such shell exists) | an Electron shell | IPC serialization round trip | would swap only doFetch; contract and base class unchanged |
+| Electron renderer adapter | apps/electron | `WebApiClient` keeps `globalThis.fetch` and `WebSocket`; sandboxed preload IPC implements both | reuses the Web client and plugin graph with no listening port; main dispatches unary requests through `toFetchHandler` and opens Host/Mux streams directly on `ApiProxy` |
 
 ## How to extend (operational checklists)
 
@@ -228,7 +228,7 @@ All four quadrant full forms pass through `onEnvelope`; the base implementation 
 
 **Add an error code (2 steps)**: ① add one `RpcErrorDetailsMap` row (details required); ② add one `rpcErrorSchema` discriminatedUnion branch.
 
-**Plug in a new carrier**: subclass `AbstractApiClient` implementing only `doFetch`; to intercept at the protocol layer (like the fixture), override the `callUnary`/`openMux`/`openHost` virtuals instead. Contract and base class stay unchanged.
+**Plug in a new carrier**: subclass `AbstractApiClient` to implement `doFetch`, or provide the transport primitives expected by an existing client as Electron does for `WebApiClient`; to intercept at the protocol layer (like the fixture), override the `callUnary`/`openMux`/`openHost` virtuals instead. The message contract stays unchanged.
 
 **Promote a reserved method**: copy the reserved signature into the domain interface → add the map row → add the schema pair → add the UNARY_ROUTES row → implement.
 
